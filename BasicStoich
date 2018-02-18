@@ -44,10 +44,10 @@ then
 						let COUNTERF=COUNTERF+1
 					fi
 				fi
-			elif [[ <${ELEMENTF:$COUNTERF:1}> = <(> ]]
+			elif [[ "${ELEMENTF:$COUNTERF:1}" == "(" ]]
 			then
 				PARMWF=0
-				until [ <${ELEMENTF:$COUNTERF:1}> = <)> ]; do
+				until [ "${ELEMENTF:$COUNTERF:1}" == ")" ]; do
 					if [[ ${ELEMENTF:$COUNTERF+2:1} =~ [a-z] ]]
 					then
 						if [[ ${ELEMENTF:$COUNTERF+3:1} =~ [0-9] ]]
