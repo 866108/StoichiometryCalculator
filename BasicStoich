@@ -48,24 +48,33 @@ then
 			then
 				PARMWF=0
 				until [ "${ELEMENTF:$COUNTERF:1}" == ")" ]; do
+					echo ${ELEMENTF:$COUNTERF:1}
 					if [[ ${ELEMENTF:$COUNTERF+2:1} =~ [a-z] ]]
 					then
 						if [[ ${ELEMENTF:$COUNTERF+3:1} =~ [0-9] ]]
 						then
-							PARMWF=$(echo "$PARMWF + ${periodictable[${ELEMENTF:$COUNTERF+1:2}]} * ${periodictable[${ELEMENTF:$COUNTERF+3:1}]}" | bc -l)
+							PARMWF=$(echo "$PARMWF + ${periodictable[${ELEMENTF:$COUNTERF+1:2}]} * ${ELEMENTF:$COUNTERF+3:1}" | bc -l)
 						else
 							PARMWF=$(echo "$PARMWF + ${periodictable[${ELEMENTF:$COUNTERF+1:2}]}" | bc -l)
 						fi
 					elif [[ ${ELEMENTF:$COUNTERF+2:1} =~ [0-9] ]]
 					then
-						PARMWF=$(echo "$PARMWF + ${periodictable[${ELEMENTF:$COUNTERF+1:1}]} * ${periodictable[${ELEMENTF:$COUNTERF+2:1}]}" | bc -l)
+						if [[ "${ELEMENTF:$COUNTERF+1:1}" != ")" ]]
+						then
+							PARMWF=$(echo "$PARMWF + ${periodictable[${ELEMENTF:$COUNTERF+1:1}]} * ${ELEMENTF:$COUNTERF+2:1}" | bc -l)
+						fi
 					else
-						PARMWF=$(echo "$PARMWF + ${periodictable[${ELEMENTF:$COUNTERF+1:1}]}" | bc -l)
+						if [[ ${ELEMENTF:$COUNTERF+1:1} =~ [A-Z] ]]
+						then
+							PARMWF=$(echo "$PARMWF + ${periodictable[${ELEMENTF:$COUNTERF+1:1}]}" | bc -l)
+						fi
 					fi
 					let COUNTERF=COUNTERF+1
+					echo $PARMWF
 				done
+				echo ${ELEMENTF:$COUNTERF+1:1}
+				CURRENTMWF=$(echo "$CURRENTMWF + $PARMWF * ${ELEMENTF:$COUNTERF+1:1}" | bc -l)
 				let COUNTERF=COUNTERF+1
-				CURRENTMWF=$(echo "$CURRENTMWF + $PARMWF * ${periodictable[${ELEMENTF:$COUNTERF:1}]}" | bc -l)
 			else
 				let COUNTERF=COUNTERF+1 
 			fi
