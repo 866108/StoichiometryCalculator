@@ -1,0 +1,192 @@
+#!/usr/local/bin/bash
+
+# Type first units, second units as your arguments
+
+# Molecular weight table
+declare -A periodictable=([H]=1.01 [He]=4.00 [Li]=6.94 [Be]=9.01 [B]=10.81 [C]=12.01 [N]=14.01 [O]=16.00 [F]=19.00 [Ne]=20.12 [Na]=22.99 [Mg]=24.30 [Al]=26.98 [Si]=28.09 [P]=30.97 [S]=32.06 [Cl]=35.45 [Ar]=39.95 [K]=39.10 [Ca]=40.08 [Sc]=44.96 [Ti]=47.90 [V]=50.94 [Cr]=52.00 [Mn]=54.94 [Fe]=55.85 [Co]=58.93 [Ni]=58.69 [Cu]=63.55 [Zn]=65.55 [Ga]=69.72 [Ge]=72.59 [As]=74.92 [Se]=78.96 [Br]=79.90 [Kr]=83.80 [Rb]=85.47 [Sr]=87.62 [Y]=88.91 [Zr]=91.22 [Nb]=92.91 [Mo]=95.94 [Tc]=98 [Ru]=101.1 [Rh]=102.91 [Pd]=106.42 [Ag]=107.87 [Cd]=112.41 [In]=114.82 [Sn]=118.71 [Sb]=121.75 [Te]=127.60 [I]=126.91 [Xe]=131.29 [Cs]=132.91 [Ba]=137.33 [La]=138.91 [Hf]=178.49 [Ta]=180.95 [W]=183.83 [Re]=186.21 [Os]=190.2 [Ir]=192.2 [Pt]=195.08 [Au]=196.97 [Hg]=200.59 [Tl]=204.38 [Pb]=207.2 [Bi]=208.98 [Po]=209 [At]=210 [Rn]=222 [Fr]=223 [Ra]=226.02 [Ac]=227.03 [Rf]=261 [Db]=262 [Sg]=266 [Bh]=263 [Hs]=277 [Mt]=268 [Ds]=271 [Rg]=272 [Ce]=140.12 [Pr]=140.91 [Nd]=144.24 [Pm]=145 [Sm]=150.4 [Eu]=151.97 [Gd]=157.25 [Tb]=158.93 [Dy]=162.50 [Ho]=164.93 [Er]=167.26 [Tm]=168.93 [Yb]=173.04 [Lu]=174.97 [Th]=232.04 [Pa]=231.04 [U]=238.03 [Np]=237 [Pu]=244 [Am]=243 [Cm]=247 [Bk]=247 [Cf]=251 [Es]=252 [Fm]=257 [Md]=258 [No]=259 [Lr]=262 [h]=1 )
+
+if [ “$1” = “M” ]
+then
+	echo “You have chosen molar as your starting unit. What is your concentration?”
+	read MOLARITYF
+	MOLECWEIGHTF=1
+elif [ “$1” = “grams” ]
+then
+	echo “You have chosen grams as your starting unit. What is the molecular formula for your starting substance?”
+	read ELEMENTF
+	ELEMENTFLENGTH=${#ELEMENTF}
+        	COUNTERF=0
+		CURRENTMWF=0
+        	while [  $COUNTERF -lt $ELEMENTFLENGTH ]; do
+			LETTERF=$COUNTERF+1
+			LETTERFTWO=$COUNTERF+2        		
+			if [[ ${ELEMENTF:$COUNTERF:1} =~ [A-Z] ]]
+			then
+				if [[ ${ELEMENTF:$LETTERF:1} =~ [A-Z] ]]
+				then
+					RECENTMWF=$(echo "$CURRENTMWF + ${periodictable[${ELEMENTF:$COUNTERF:1}]}" | bc -l)
+					CURRENTMWF=$RECENTMWF
+					let COUNTERF=COUNTERF+1 
+				elif [[ ${ELEMENTF:$LETTERF:1} =~ [0-9] ]]
+				then
+					RECENTMWF=$(echo "$CURRENTMWF + ${periodictable[${ELEMENTF:$COUNTERF:1}]} * ${ELEMENTF:$LETTERF:1}" | bc -l)
+					CURRENTMWF=$RECENTMWF
+					let COUNTERF=COUNTERF+1
+				else
+					if [[ ${ELEMENTF:$COUNTERF+2:1} =~ [0-9] ]]
+					then
+						RECENTMWF=$(echo "$CURRENTMWF + ${periodictable[${ELEMENTF:$COUNTERF:2}]} * ${ELEMENTF:$COUNTERF+2:1}" | bc -l)
+						CURRENTMWF=$RECENTMWF
+						let COUNTERF=COUNTERF+1
+					else
+						RECENTMWF=$(echo "$CURRENTMWF + ${periodictable[${ELEMENTF:$COUNTERF:2}]}" | bc -l)
+						CURRENTMWF=$RECENTMWF
+						let COUNTERF=COUNTERF+1
+					fi
+				fi
+			elif [[ "${ELEMENTF:$COUNTERF:1}" == "(" ]]
+			then
+				PARMWF=0
+				until [ "${ELEMENTF:$COUNTERF:1}" == ")" ]; do
+					echo ${ELEMENTF:$COUNTERF:1}
+					if [[ ${ELEMENTF:$COUNTERF+2:1} =~ [a-z] ]]
+					then
+						if [[ ${ELEMENTF:$COUNTERF+3:1} =~ [0-9] ]]
+						then
+							PARMWF=$(echo "$PARMWF + ${periodictable[${ELEMENTF:$COUNTERF+1:2}]} * ${ELEMENTF:$COUNTERF+3:1}" | bc -l)
+						else
+							PARMWF=$(echo "$PARMWF + ${periodictable[${ELEMENTF:$COUNTERF+1:2}]}" | bc -l)
+						fi
+					elif [[ ${ELEMENTF:$COUNTERF+2:1} =~ [0-9] ]]
+					then
+						if [[ "${ELEMENTF:$COUNTERF+1:1}" != ")" ]]
+						then
+							PARMWF=$(echo "$PARMWF + ${periodictable[${ELEMENTF:$COUNTERF+1:1}]} * ${ELEMENTF:$COUNTERF+2:1}" | bc -l)
+						fi
+					else
+						if [[ ${ELEMENTF:$COUNTERF+1:1} =~ [A-Z] ]]
+						then
+							PARMWF=$(echo "$PARMWF + ${periodictable[${ELEMENTF:$COUNTERF+1:1}]}" | bc -l)
+						fi
+					fi
+					let COUNTERF=COUNTERF+1
+					echo $PARMWF
+				done
+				echo ${ELEMENTF:$COUNTERF+1:1}
+				CURRENTMWF=$(echo "$CURRENTMWF + $PARMWF * ${ELEMENTF:$COUNTERF+1:1}" | bc -l)
+				let COUNTERF=COUNTERF+1
+			else
+				let COUNTERF=COUNTERF+1 
+			fi
+        	done
+	echo $CURRENTMWF
+	MOLECWEIGHTF=$CURRENTMWF
+	MOLARITYF=1	
+elif [ “$1” = “moles” ]
+then
+	echo “You have chosen moles as your starting unit.”
+	MOLECWEIGHTF=1
+	MOLARITYF=1
+else
+	echo “Starting unit unknown. Please choose a different starting unit. Acceptable units are grams, moles, or M.”	
+	exit
+fi
+
+if [ “$2” = “M” ]
+then
+	echo “You have chosen molar as your ending unit. What is your concentration?”
+	read MOLARITYS
+	MOLECWEIGHTS=1
+elif [ “$2” = “grams” ]
+then
+	echo “You have chosen grams as your ending unit. What is the molecular formula for your ending substance?”
+	read ELEMENTS
+	ELEMENTSLENGTH=${#ELEMENTS}
+        	COUNTERS=0
+		CURRENTMWS=0
+        	while [  $COUNTERS -lt $ELEMENTSLENGTH ]; do
+			LETTERS=$COUNTERS+1
+			LETTERSTWO=$COUNTERS+2        		
+			if [[ ${ELEMENTS:$COUNTERS:1} =~ [A-Z] ]]
+			then
+				if [[ ${ELEMENTS:$LETTERS:1} =~ [A-Z] ]]
+				then
+					RECENTMWS=$(echo "$CURRENTMWS + ${periodictable[${ELEMENTS:$COUNTERS:1}]}" | bc -l)
+					CURRENTMWS=$RECENTMWS
+					let COUNTERS=COUNTERS+1
+				elif [[ ${ELEMENTS:$LETTERS:1} =~ [0-9] ]]
+				then
+					RECENTMWS=$(echo "$CURRENTMWS + ${periodictable[${ELEMENTS:$COUNTERS:1}]} * ${ELEMENTS:$LETTERS:1}" | bc -l)
+					CURRENTMWS=$RECENTMWS
+					let COUNTERS=COUNTERS+1
+				else
+					if [[ ${ELEMENTS:$COUNTERS+2:1} =~ [0-9] ]]
+					then
+						RECENTMWS=$(echo "$CURRENTMWS + ${periodictable[${ELEMENTS:$COUNTERS:2}]} * ${ELEMENTS:$COUNTERS+2:1}" | bc -l)
+						CURRENTMWS=$RECENTMWS
+						let COUNTERS=COUNTERS+1
+					else
+						RECENTMWS=$(echo "$CURRENTMWS + ${periodictable[${ELEMENTS:$COUNTERS:2}]}" | bc -l)
+						CURRENTMWS=$RECENTMWS
+						let COUNTERS=COUNTERS+1
+					fi
+				fi
+			elif [[ "${ELEMENTS:$COUNTERS:1}" == "(" ]]
+			then
+				PARMWS=0
+				until [ "${ELEMENTS:$COUNTERS:1}" == ")" ]; do
+					echo ${ELEMENTS:$COUNTERS:1}
+					if [[ ${ELEMENTS:$COUNTERS+2:1} =~ [a-z] ]]
+					then
+						if [[ ${ELEMENTS:$COUNTERS+3:1} =~ [0-9] ]]
+						then
+							PARMWS=$(echo "$PARMWS + ${periodictable[${ELEMENTS:$COUNTERS+1:2}]} * ${ELEMENTS:$COUNTERS+3:1}" | bc -l)
+						else
+							PARMWS=$(echo "$PARMWS + ${periodictable[${ELEMENTS:$COUNTERS+1:2}]}" | bc -l)
+						fi
+					elif [[ ${ELEMENTS:$COUNTERS+2:1} =~ [0-9] ]]
+					then
+						if [[ "${ELEMENTS:$COUNTERS+1:1}" != ")" ]]
+						then
+							PARMWS=$(echo "$PARMWS + ${periodictable[${ELEMENTS:$COUNTERS+1:1}]} * ${ELEMENTS:$COUNTERS+2:1}" | bc -l)
+						fi
+					else
+						if [[ ${ELEMENTS:$COUNTERS+1:1} =~ [A-Z] ]]
+						then
+							PARMWS=$(echo "$PARMWS + ${periodictable[${ELEMENTS:$COUNTERS+1:1}]}" | bc -l)
+						fi
+					fi
+					let COUNTERS=COUNTERS+1
+					echo $PARMWS
+				done
+				echo ${ELEMENTS:$COUNTERS+1:1}
+				CURRENTMWS=$(echo "$CURRENTMWS + $PARMWS * ${ELEMENTS:$COUNTERS+1:1}" | bc -l)
+				let COUNTERS=COUNTERS+1
+			else
+				let COUNTERS=COUNTERS+1 
+			fi
+        	done
+	echo $CURRENTMWS
+	MOLECWEIGHTS=$CURRENTMWS
+	MOLARITYS=1
+elif [ “$2” = “moles” ]
+then
+	echo “You have chosen moles as your ending unit.”	
+	MOLECWEIGHTS=1
+	MOLARITYS=1
+else
+	echo “Ending unit unknown. Please choose a different starting unit. Acceptable units are grams, moles, or M.”
+	exit
+fi
+
+echo “What is the stoichiometric coefficient of your starting substance?”
+read COEFFICIENTF
+echo “What is the stoichiometric coefficient of the substance you are creating?”
+read COEFFICIENTS
+
+echo “How much of the starting substance do you have? Answer in grams, moles, or liters.”
+read AMOUNT
+
+echo “The total ending substance is:”
+echo "$AMOUNT * $MOLARITYF * $COEFFICIENTS * $MOLECWEIGHTS / $MOLECWEIGHTF / $COEFFICIENTF / $MOLARITYS" | bc -l
+echo $2
